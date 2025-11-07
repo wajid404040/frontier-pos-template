@@ -17,10 +17,10 @@ This is a general public chain development template based on [polkadot-sdk](http
 
 ## connect MetaMask wallet
 ```
-Network name: Frontier Testnet
+Network name: MegapayerTestnet
 Default RPC URL: http://localhost:9944
-Chain ID: 42
-Currency symbol: UNIT
+Chain ID: 20240
+Currency symbol: MPC
 ```
 
 ![add network to MetaMask](./docs/images/add_network_to_metamask.jpg)

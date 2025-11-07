@@ -68,10 +68,10 @@ docker-compose up
 
 1. Add your network to MetaMask.
     ```
-    Network name: Frontier Testnet
+    Network name: MegapayerTestnet
     Default RPC URL: http://localhost:9944
-    Chain ID: 42
-    Currency symbol: UNIT
+    Chain ID: 20240
+    Currency symbol: MPC
     ```
     <div align="center">
     <img src="./images/add_network_to_metamask.jpg" alt="add_network_to_metamask">
@@ -89,7 +89,7 @@ docker-compose up
         <img src="./images/copy%20address.jpg" alt="copy your address">
         </div>
 
-3. Use `CHARLETH` to transfer UNIT to your wallet address in the [explorer](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/accounts). Your MetaMask wallet will display the balance.
+3. Use `CHARLETH` to transfer MPC to your wallet address in the [explorer](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/accounts). Your MetaMask wallet will display the balance.
     1. transfer 
         <div align="center">
         <img src="./images/charleth%20transfer.jpg" alt="charleth transfer">

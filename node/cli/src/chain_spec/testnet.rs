@@ -24,6 +24,7 @@
 
 use common_runtime::AccountId;
 use ecdsa_keyring::Keyring;
+use fp_account::AccountId20;
 use hex_literal::hex;
 use kitchensink_testnet_runtime::{
     constants::currency::*, wasm_binary_unwrap, Block, MaxNominations, SessionKeys, StakerStatus,
@@ -113,6 +114,22 @@ where
     AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
+/// Helper function to convert Ethereum address (H160) string to AccountId.
+/// 
+/// # Example
+/// ```
+/// let account = account_from_hex("0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac");
+/// ```
+pub fn account_from_hex(hex_address: &str) -> AccountId {
+    // Remove "0x" prefix if present
+    let hex_str = hex_address.strip_prefix("0x").unwrap_or(hex_address);
+    // Parse hex string to H160
+    let h160 = H160::from_str(hex_str)
+        .expect("Invalid Ethereum address format");
+    // Convert H160 to AccountId20, then to AccountId
+    AccountId20::from(h160).into()
+}
+
 /// Helper function to generate stash, controller and session key from seed.
 pub fn authority_keys_from_alice() -> (
     AccountId,
@@ -152,6 +169,54 @@ pub fn authority_keys_from_bob() -> (
     (
         Keyring::Baltathar.into(),
         Keyring::Baltathar.into(),
+        get_from_seed::<GrandpaId>(seed),
+        get_from_seed::<BabeId>(seed),
+        get_from_seed::<ImOnlineId>(seed),
+        get_from_seed::<AuthorityDiscoveryId>(seed),
+        get_from_seed::<MixnetId>(seed),
+        get_from_seed::<BeefyId>(seed),
+    )
+}
+
+/// Helper function to generate stash, controller and session key from seed for Validator 3.
+pub fn authority_keys_from_charlie() -> (
+    AccountId,
+    AccountId,
+    GrandpaId,
+    BabeId,
+    ImOnlineId,
+    AuthorityDiscoveryId,
+    MixnetId,
+    BeefyId,
+) {
+    let seed = "Charlie";
+    (
+        get_account_id_from_seed::<ecdsa::Public>(seed),
+        get_account_id_from_seed::<ecdsa::Public>(seed),
+        get_from_seed::<GrandpaId>(seed),
+        get_from_seed::<BabeId>(seed),
+        get_from_seed::<ImOnlineId>(seed),
+        get_from_seed::<AuthorityDiscoveryId>(seed),
+        get_from_seed::<MixnetId>(seed),
+        get_from_seed::<BeefyId>(seed),
+    )
+}
+
+/// Helper function to generate stash, controller and session key from seed for Validator 4.
+pub fn authority_keys_from_dave() -> (
+    AccountId,
+    AccountId,
+    GrandpaId,
+    BabeId,
+    ImOnlineId,
+    AuthorityDiscoveryId,
+    MixnetId,
+    BeefyId,
+) {
+    let seed = "Dave";
+    (
+        get_account_id_from_seed::<ecdsa::Public>(seed),
+        get_account_id_from_seed::<ecdsa::Public>(seed),
         get_from_seed::<GrandpaId>(seed),
         get_from_seed::<BabeId>(seed),
         get_from_seed::<ImOnlineId>(seed),
@@ -294,26 +359,84 @@ pub fn testnet_genesis(
 }
 
 fn development_config_genesis_json() -> serde_json::Value {
-    let extra_endowed_accounts_balance = vec![(Keyring::CharLeth.into(), 1000_000_000 * DOLLARS)];
+    // ============================================================
+    // YOUR CUSTOM ACCOUNTS - MegapayerTestnet
+    // ============================================================
+    // These are YOUR MetaMask wallet addresses
+    // Funds will be automatically allocated when chain starts
+    // ============================================================
+    
+    // Validator accounts (for your 4 validator nodes)
+    let validator1_account = account_from_hex("0x14A53536671FBeE7Cc3840F26c07B0280FB3f01d");
+    let validator2_account = account_from_hex("0x03A5359ABC4d625f5639fC29E9F63774E6Fee1BB");
+    let validator3_account = account_from_hex("0x14123f0468256d0F322B51A3F47809bFfa840176");
+    let validator4_account = account_from_hex("0x82cA4c56F1d2DF02F7fB287807af301cEe0a63CB");
+    
+    // Faucet account (for testing/faucet service)
+    let faucet_account = account_from_hex("0x211f6C872fF68700Be5CC0232B9595F5d53290e9");
+    
+    // Treasury account (for governance, bounties, etc.)
+    let treasury_account = account_from_hex("0xbBdCe65969Ab5ABB0A47398a4605348cE38e00DE");
+    
+    // Testing account (for development/testing)
+    let testing_account = account_from_hex("0xa6D812269DF172a3478EaADd127aBbb57c2B4757");
+    
+    // Total: 1 billion MPC distribution for MegapayerTestnet
+    let extra_endowed_accounts_balance = vec![
+        // Faucet account - 500 million MPC (for testing/faucet)
+        (faucet_account, 500_000_000 * DOLLARS),
+        
+        // Validators - 200 million MPC total (50M each for staking and operations)
+        (validator1_account, 50_000_000 * DOLLARS),      // Validator 1
+        (validator2_account, 50_000_000 * DOLLARS),      // Validator 2
+        (validator3_account, 50_000_000 * DOLLARS),      // Validator 3
+        (validator4_account, 50_000_000 * DOLLARS),      // Validator 4
+        
+        // Treasury - 200 million MPC (for governance, bounties, etc.)
+        (treasury_account, 200_000_000 * DOLLARS),
+        
+        // Testing account - 100 million MPC (for development/testing)
+        (testing_account, 100_000_000 * DOLLARS),
+    ];
+    
+    // Add all accounts to the endowed accounts list so they get default 100 MPC
+    let custom_endowed_accounts = vec![
+        faucet_account,
+        validator1_account,
+        validator2_account,
+        validator3_account,
+        validator4_account,
+        treasury_account,
+        testing_account,
+    ];
+    
+    // Note: For validators, we still use seed-based session keys generation
+    // The validator accounts above are for staking/operations
+    // Session keys will be generated separately when setting up validator nodes
     testnet_genesis(
-        vec![authority_keys_from_alice(), authority_keys_from_bob()], 
-        vec![],
-        Keyring::Alith.into(),
-        Some(vec![Keyring::Alith.into(), Keyring::Baltathar.into()]),
+        vec![
+            authority_keys_from_alice(),   // Validator 1 (uses seed "Alice" for session keys)
+            authority_keys_from_bob(),     // Validator 2 (uses seed "Bob" for session keys)
+            authority_keys_from_charlie(), // Validator 3 (uses seed "Charlie" for session keys)
+            authority_keys_from_dave(),    // Validator 4 (uses seed "Dave" for session keys)
+        ],
+        vec![], // No initial nominators
+        validator1_account, // Root/admin account (Validator 1)
+        Some(custom_endowed_accounts),
         extra_endowed_accounts_balance,
-        42u32,
+        20240u32, // MegapayerTestnet Chain ID
     )
 }
 
 /// Development config (single validator Alice).
 pub fn development_config() -> ChainSpec {
     ChainSpec::builder(wasm_binary_unwrap(), Default::default())
-        .with_name("Frontier Testnet")
-        .with_id("frontier-testnet")
+        .with_name("MegapayerTestnet")
+        .with_id("megapayer-testnet")
         .with_chain_type(ChainType::Development)
         .with_properties(
             serde_json::from_str(
-                "{\"isEthereum\": true, \"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}",
+                "{\"isEthereum\": true, \"tokenDecimals\": 18, \"tokenSymbol\": \"MPC\"}",
             )
             .expect("Provided valid json map"),
         )
