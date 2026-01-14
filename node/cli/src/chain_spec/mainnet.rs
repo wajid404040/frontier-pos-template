@@ -23,6 +23,7 @@
 
 use common_runtime::AccountId;
 use ecdsa_keyring::Keyring;
+use fp_account::AccountId20;
 use hex_literal::hex;
 use kitchensink_mainnet_runtime::{
     constants::currency::*, wasm_binary_unwrap, Block, MaxNominations, SessionKeys, StakerStatus,
@@ -112,6 +113,22 @@ where
     AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
+/// Helper function to convert Ethereum address (H160) string to AccountId.
+/// 
+/// # Example
+/// ```
+/// let account = account_from_hex("0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac");
+/// ```
+pub fn account_from_hex(hex_address: &str) -> AccountId {
+    // Remove "0x" prefix if present
+    let hex_str = hex_address.strip_prefix("0x").unwrap_or(hex_address);
+    // Parse hex string to H160
+    let h160 = H160::from_str(hex_str)
+        .expect("Invalid Ethereum address format");
+    // Convert H160 to AccountId20, then to AccountId
+    AccountId20::from(h160).into()
+}
+
 // /// Helper function to generate stash, controller and session key from seed.
 // pub fn authority_keys_from_seed(
 //     seed: &str,
@@ -152,6 +169,78 @@ pub fn authority_keys_from_alice() -> (
     (
         Keyring::Alith.into(),
         Keyring::Alith.into(),
+        get_from_seed::<GrandpaId>(seed),
+        get_from_seed::<BabeId>(seed),
+        get_from_seed::<ImOnlineId>(seed),
+        get_from_seed::<AuthorityDiscoveryId>(seed),
+        get_from_seed::<MixnetId>(seed),
+        get_from_seed::<BeefyId>(seed),
+    )
+}
+
+/// Helper function to generate stash, controller and session key from seed for Validator 2.
+pub fn authority_keys_from_bob() -> (
+    AccountId,
+    AccountId,
+    GrandpaId,
+    BabeId,
+    ImOnlineId,
+    AuthorityDiscoveryId,
+    MixnetId,
+    BeefyId,
+) {
+    let seed = "Bob";
+    (
+        Keyring::Baltathar.into(),
+        Keyring::Baltathar.into(),
+        get_from_seed::<GrandpaId>(seed),
+        get_from_seed::<BabeId>(seed),
+        get_from_seed::<ImOnlineId>(seed),
+        get_from_seed::<AuthorityDiscoveryId>(seed),
+        get_from_seed::<MixnetId>(seed),
+        get_from_seed::<BeefyId>(seed),
+    )
+}
+
+/// Helper function to generate stash, controller and session key from seed for Validator 3.
+pub fn authority_keys_from_charlie() -> (
+    AccountId,
+    AccountId,
+    GrandpaId,
+    BabeId,
+    ImOnlineId,
+    AuthorityDiscoveryId,
+    MixnetId,
+    BeefyId,
+) {
+    let seed = "Charlie";
+    (
+        get_account_id_from_seed::<ecdsa::Public>(seed),
+        get_account_id_from_seed::<ecdsa::Public>(seed),
+        get_from_seed::<GrandpaId>(seed),
+        get_from_seed::<BabeId>(seed),
+        get_from_seed::<ImOnlineId>(seed),
+        get_from_seed::<AuthorityDiscoveryId>(seed),
+        get_from_seed::<MixnetId>(seed),
+        get_from_seed::<BeefyId>(seed),
+    )
+}
+
+/// Helper function to generate stash, controller and session key from seed for Validator 4.
+pub fn authority_keys_from_dave() -> (
+    AccountId,
+    AccountId,
+    GrandpaId,
+    BabeId,
+    ImOnlineId,
+    AuthorityDiscoveryId,
+    MixnetId,
+    BeefyId,
+) {
+    let seed = "Dave";
+    (
+        get_account_id_from_seed::<ecdsa::Public>(seed),
+        get_account_id_from_seed::<ecdsa::Public>(seed),
         get_from_seed::<GrandpaId>(seed),
         get_from_seed::<BabeId>(seed),
         get_from_seed::<ImOnlineId>(seed),
@@ -296,28 +385,67 @@ pub fn testnet_genesis(
 }
 
 fn development_config_genesis_json() -> serde_json::Value {
-    let extra_endowed_accounts_balance = vec![(Keyring::Baltathar.into(), 100_000_000 * DOLLARS)];
+    // ============================================================
+    // ETTIOS MAINNET CONFIGURATION
+    // ============================================================
+    // Blockchain Name: ettios mainnet
+    // Token Name: ettia
+    // Total Supply: 100,000,000,000 ETTIA (100 billion tokens)
+    // Distribution: 25 billion ETTIA to each of 4 addresses
+    // ============================================================
+    
+    // Supply distribution addresses (25 billion ETTIA each = 25,000,000,000 * DOLLARS)
+    let address1 = account_from_hex("0x06e7e5d101e69cfd62e628b05c53785aa4aaf912");
+    let address2 = account_from_hex("0x27f69008e0675cbd1fb730657010beb668e1222a");
+    let address3 = account_from_hex("0x34fd827b6160b550d1ce93f8db27e763c78a8494");
+    let address4 = account_from_hex("0x2bd700dc26d5ca3f179e3fbb286b361960ef8bb3");
+    
+    // Total supply: 100 billion ETTIA tokens
+    // Distribute evenly: 25 billion to each address
+    let supply_per_address = 25_000_000_000u128 * DOLLARS;
+    
+    let extra_endowed_accounts_balance = vec![
+        (address1, supply_per_address),
+        (address2, supply_per_address),
+        (address3, supply_per_address),
+        (address4, supply_per_address),
+    ];
+    
+    // Add all supply addresses to endowed accounts
+    let custom_endowed_accounts = vec![
+        address1,
+        address2,
+        address3,
+        address4,
+    ];
+    
+    // Configure 4 validators for the network
+    // Validators use seed-based session keys (Alice, Bob, Charlie, Dave)
+    // The supply addresses above are separate from validator accounts
     testnet_genesis(
-        vec![authority_keys_from_alice()],
-        vec![],
-        Keyring::Alith.into(),
-        Some(vec![Keyring::Alith.into()]),
+        vec![
+            authority_keys_from_alice(),   // Validator 1 (uses seed "Alice" for session keys)
+            authority_keys_from_bob(),     // Validator 2 (uses seed "Bob" for session keys)
+            authority_keys_from_charlie(), // Validator 3 (uses seed "Charlie" for session keys)
+            authority_keys_from_dave(),    // Validator 4 (uses seed "Dave" for session keys)
+        ],
+        vec![], // No initial nominators
+        address1, // Root/admin account (first supply address)
+        Some(custom_endowed_accounts),
         extra_endowed_accounts_balance,
-        42u32,
+        2237u32, // Ettios Mainnet Chain ID
     )
 }
 
-/// Development config (single validator Alice).
+/// Ettios Mainnet configuration (4 validators).
 pub fn development_config() -> ChainSpec {
     ChainSpec::builder(wasm_binary_unwrap(), Default::default())
-        .with_name("Development")
-        .with_id("dev")
-        // .with_id()
-        .with_chain_type(ChainType::Development)
-        // .with_properties(serde_json::from_str("{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}")
+        .with_name("ettios mainnet")
+        .with_id("ettios-mainnet")
+        .with_chain_type(ChainType::Live)
         .with_properties(
             serde_json::from_str(
-                "{\"isEthereum\": true, \"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\"}",
+                "{\"isEthereum\": true, \"tokenDecimals\": 18, \"tokenSymbol\": \"ettia\"}",
             )
             .expect("Provided valid json map"),
         )
