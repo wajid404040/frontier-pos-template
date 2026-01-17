@@ -411,13 +411,10 @@ fn development_config_genesis_json() -> serde_json::Value {
         (address4, supply_per_address),
     ];
     
-    // Add all supply addresses to endowed accounts
-    let custom_endowed_accounts = vec![
-        address1,
-        address2,
-        address3,
-        address4,
-    ];
+    // Don't add supply addresses to custom_endowed_accounts to avoid duplicates
+    // They will only get balances from extra_endowed_accounts_balance
+    // Validators will be automatically added to endowed_accounts by configure_accounts
+    let custom_endowed_accounts: Vec<AccountId> = vec![];
     
     // Configure 4 validators for the network
     // Validators use seed-based session keys (Alice, Bob, Charlie, Dave)
