@@ -341,7 +341,7 @@ pub fn testnet_genesis(
         },
         "staking": {
             "validatorCount": initial_authorities.len() as u32,
-            "minimumValidatorCount": initial_authorities.len() as u32,
+            "minimumValidatorCount": 3u32, // Allow 3 out of 4 validators to produce blocks
             "invulnerables": initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
             "slashRewardFraction": Perbill::from_percent(10),
             "stakers": stakers.clone(),
