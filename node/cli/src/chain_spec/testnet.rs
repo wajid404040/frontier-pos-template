@@ -326,7 +326,7 @@ pub fn testnet_genesis(
         .collect();
 
     // Combine all balances and deduplicate by address (keep the last entry if duplicates exist)
-    let mut all_balances: Vec<(AccountId, u128)> = endowed_accounts
+    let all_balances: Vec<(AccountId, u128)> = endowed_accounts
         .iter()
         .cloned()
         .map(|x| (x, ENDOWMENT))
