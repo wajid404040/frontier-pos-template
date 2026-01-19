@@ -22,6 +22,8 @@
 #![allow(unused_variables)]
 #![allow(clippy::clone_on_copy)]
 
+use std::collections::HashMap;
+
 use common_runtime::AccountId;
 use ecdsa_keyring::Keyring;
 use fp_account::AccountId20;
@@ -323,9 +325,24 @@ pub fn testnet_genesis(
         .filter(|(addr, _)| !endowed_accounts.contains(addr))
         .collect();
 
+    // Combine all balances and deduplicate by address (keep the last entry if duplicates exist)
+    let mut all_balances: Vec<(AccountId, u128)> = endowed_accounts
+        .iter()
+        .cloned()
+        .map(|x| (x, ENDOWMENT))
+        .chain(extra_balances_filtered)
+        .collect();
+    
+    // Deduplicate by address - use a HashMap to ensure no duplicates
+    let mut balance_map: HashMap<AccountId, u128> = HashMap::new();
+    for (addr, balance) in all_balances {
+        balance_map.insert(addr, balance);
+    }
+    let final_balances: Vec<_> = balance_map.into_iter().collect();
+
     serde_json::json!({
         "balances": {
-            "balances": endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).chain(extra_balances_filtered).collect::<Vec<_>>(),
+            "balances": final_balances,
         },
         "session": {
             "keys": initial_authorities
