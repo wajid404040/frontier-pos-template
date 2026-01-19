@@ -50,3 +50,7 @@ private*
 build_rs_cov.profraw
 tarpaulin-report.html
 *html
+
+# Sensitive network setup documentation (contains IPs, peer IDs, etc.)
+docs/*-complete-setup.md
+docs/node*-setup-info.md
