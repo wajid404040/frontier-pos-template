@@ -368,24 +368,21 @@ fn development_config_genesis_json() -> serde_json::Value {
     // Distribution: 250 million MPC to each of 4 addresses
     // ============================================================
     
-    // Supply distribution addresses (250 million MPC each = 250,000,000 * DOLLARS)
+    // Supply distribution addresses
     let address1 = account_from_hex("0x524aAdF5104493fb3112CCD64F20725b9D0D61bc");
     let address2 = account_from_hex("0x54B0C17AaE30BE8c56Fb8D1DC84213F192035E55");
     let address3 = account_from_hex("0x182090B7Df5B848b76F7e019A0Ac7300569982B0");
-    let address4 = account_from_hex("0x182090B7Df5B848b76F7e019A0Ac7300569982B0");
-    
-    // ⚠️ NOTE: Address 3 and Address 4 are the same
-    // Address 3 will receive 500 million MPC total (250M + 250M)
+    // Note: address3 and address4 are the same, so we combine them into one entry with 500M
     
     // Total supply: 1 billion MPC tokens
-    // Distribute: 250 million to each address
+    // Distribution: 250M to address1, 250M to address2, 500M to address3 (which is the same as address4)
     let supply_per_address = 250_000_000u128 * DOLLARS;
+    let supply_for_address3 = 500_000_000u128 * DOLLARS; // Combined amount for duplicate address
     
     let extra_endowed_accounts_balance = vec![
         (address1, supply_per_address),
         (address2, supply_per_address),
-        (address3, supply_per_address),
-        (address4, supply_per_address),
+        (address3, supply_for_address3), // Single entry with 500M (250M + 250M)
     ];
     
     // Don't add supply addresses to custom_endowed_accounts to avoid duplicates
