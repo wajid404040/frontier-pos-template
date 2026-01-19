@@ -316,9 +316,16 @@ pub fn testnet_genesis(
         STASH,
     );
 
+    // Filter out any addresses from extra_endowed_accounts_balance that are already in endowed_accounts
+    // to prevent duplicate balance entries
+    let extra_balances_filtered: Vec<_> = extra_endowed_accounts_balance
+        .into_iter()
+        .filter(|(addr, _)| !endowed_accounts.contains(addr))
+        .collect();
+
     serde_json::json!({
         "balances": {
-            "balances": endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).chain(extra_endowed_accounts_balance).collect::<Vec<_>>(),
+            "balances": endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).chain(extra_balances_filtered).collect::<Vec<_>>(),
         },
         "session": {
             "keys": initial_authorities
