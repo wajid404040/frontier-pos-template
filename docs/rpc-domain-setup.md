@@ -23,12 +23,12 @@ Create Nginx configuration file:
 sudo nano /etc/nginx/sites-available/megapayer-rpc
 ```
 
-Add the following configuration (replace `your-domain.com` with your actual domain):
+Add the following configuration:
 
 ```nginx
 server {
     listen 80;
-    server_name rpc.megapayer-testnet.net;  # Replace with your domain
+    server_name istanbul.megapayer.net;
 
     # Increase timeouts for RPC calls
     proxy_connect_timeout 300s;
@@ -89,7 +89,7 @@ sudo apt install -y certbot python3-certbot-nginx
 ## Step 4: Obtain SSL Certificate
 
 ```bash
-sudo certbot --nginx -d rpc.megapayer-testnet.net
+sudo certbot --nginx -d istanbul.megapayer.net
 ```
 
 Follow the prompts:
@@ -115,7 +115,7 @@ Test the RPC endpoint:
 curl http://rpc.megapayer-testnet.net
 
 # Test HTTPS
-curl -X POST https://rpc.megapayer-testnet.net \
+curl -X POST https://istanbul.megapayer.net \
   -H "Content-Type: application/json" \
   -d '{"id":1, "jsonrpc":"2.0", "method": "eth_chainId", "params": []}'
 
@@ -127,7 +127,7 @@ curl -X POST https://rpc.megapayer-testnet.net \
 Use the new domain in MetaMask:
 
 **Network Name:** MegapayerIstanbul test network  
-**RPC URL:** `https://rpc.megapayer-testnet.net`  
+**RPC URL:** `https://istanbul.megapayer.net`  
 **Chain ID:** `20240`  
 **Currency Symbol:** `MPC`
 
@@ -139,10 +139,10 @@ If you want separate endpoints for Node 1 and Node 2:
 ```nginx
 server {
     listen 443 ssl;
-    server_name rpc1.megapayer-testnet.net;
+    server_name istanbul.megapayer.net;
     
-    ssl_certificate /etc/letsencrypt/live/rpc1.megapayer-testnet.net/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/rpc1.megapayer-testnet.net/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/istanbul.megapayer.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/istanbul.megapayer.net/privkey.pem;
     
     location / {
         proxy_pass http://127.0.0.1:9944;
@@ -197,15 +197,15 @@ curl -X POST http://127.0.0.1:9944 \
   -d '{"id":1, "jsonrpc":"2.0", "method": "eth_chainId", "params": []}'
 
 # Through domain
-curl -X POST https://rpc.megapayer-testnet.net \
+curl -X POST https://istanbul.megapayer.net \
   -H "Content-Type: application/json" \
   -d '{"id":1, "jsonrpc":"2.0", "method": "eth_chainId", "params": []}'
 ```
 
 ### Check DNS Resolution
 ```bash
-nslookup rpc.megapayer-testnet.net
-dig rpc.megapayer-testnet.net
+nslookup istanbul.megapayer.net
+dig istanbul.megapayer.net
 ```
 
 ## Security Notes
